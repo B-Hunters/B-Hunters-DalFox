@@ -10,7 +10,7 @@ To be able to use all the tools remember to update the environment variables wit
 ## Usage 
 
 **Note: You can use this tool inside [B-hunters-playground](https://github.com/B-Hunters/B-Hunters-playground)**   
-To use this tool inside your B-Hunters Instance you can easily use docker compose file after editing `b-hunters.ini` with your configuration.
+To use this tool inside your B-Hunters Instance you can easily use **docker-compose.yml** file after editing `b-hunters.ini` with your configuration.
 Also you can use it using the docker compose in the main repo of B-Hunters
 
 You can also run using docker image
