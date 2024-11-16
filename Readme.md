@@ -11,11 +11,18 @@ To be able to use all the tools remember to update the environment variables wit
 
 **Note: You can use this tool inside [B-hunters-playground](https://github.com/B-Hunters/B-Hunters-playground)**   
 To use this tool inside your B-Hunters Instance you can easily use **docker-compose.yml** file after editing `b-hunters.ini` with your configuration.
-Also you can use it using the docker compose in the main repo of B-Hunters
 
+# 1. **Build local**
+Rename docker-compose.example.yml to docker-compose.yml and update environment variables.
+
+```bash
+docker compose up -d
+```
+
+# 2. **Docker Image**
 You can also run using docker image
 ```bash
-docker run -e workers_num=300 bormaa/b-hunters-dalfox:v1.0
+docker run -e workers_num=300 -v $(pwd)/b-hunters.ini:/etc/b-hunters/b-hunters.ini bormaa/b-hunters-dalfox:v1.0
 ```
 
 ## How it works
