@@ -22,7 +22,7 @@ docker compose up -d
 # 2. **Docker Image**
 You can also run using docker image
 ```bash
-docker run -e workers_num=300 -v $(pwd)/b-hunters.ini:/etc/b-hunters/b-hunters.ini bormaa/b-hunters-dalfox:v1.0
+docker run -d -e workers_num=300 -v $(pwd)/b-hunters.ini:/etc/b-hunters/b-hunters.ini bormaa/b-hunters-dalfox:v1.0
 ```
 
 ## How it works
