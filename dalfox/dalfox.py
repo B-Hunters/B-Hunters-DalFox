@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from b_hunters.bhunter import BHunters
 from karton.core import Task
 import re
+from bson.objectid import ObjectId
 
 class dalfox(BHunters):
     """
@@ -50,6 +51,8 @@ class dalfox(BHunters):
             p6 = subprocess.Popen(["qsreplace","FUZZ"], stdin=p5.stdout, stdout=subprocess.PIPE)
             p5.stdout.close()
             newlinks=self.checklinksexist(self.subdomain,p6.stdout.read().decode("utf-8"))
+            if newlinks==[]:
+                return [],[]
             # Command 7: dalfox pipe --deep-domxss --multicast --blind 
             p7 = subprocess.Popen(["dalfox", "pipe", "--deep-domxss", "--multicast","-w",os.getenv("workers_num","300"),"-o",outputfile,"--format","json","--no-color"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             p7.stdin.write('\n'.join(newlinks).encode())
@@ -85,7 +88,7 @@ class dalfox(BHunters):
         return result,resultarr
                     
     def scan(self,url,source):
-        data=self.backend.download_object("bhunters",f"{source}_"+self.encode_filename(url))
+        data=self.backend.download_object("bhunters",f"{source}_"+self.scanid+"_"+self.encode_filename(url))
         result,resultarr=self.rundalfox(data)
         return result,resultarr
         
@@ -93,21 +96,24 @@ class dalfox(BHunters):
         url = task.payload["data"]
         subdomain=task.payload["subdomain"]
         source=task.payload["source"]
+        self.scanid=task.payload_persistent["scan_id"]
         self.log.info("Starting processing new url")
         self.log.warning(url)
         self.update_task_status(subdomain,"Started")
         url = re.sub(r'^https?://', '', url)
-        url = url.rstrip('/')    
+        url = url.rstrip('/')
+        report_id=task.payload_persistent["report_id"]    
         subdomain = re.sub(r'^https?://', '', subdomain)
         subdomain = subdomain.rstrip('/')    
         self.subdomain=subdomain
         try:
             
             result,resultarr=self.scan(url,source)
+            self.waitformongo()
             db=self.db
-            collection=db["domains"]
+            collection=db["reports"]
             if result !=[]:
-                collection.update_one({"Domain": subdomain}, {"$push": {f"Vulns.dalfox": {"$each": result}}})
+                collection.update_one({"_id": ObjectId(report_id)}, {"$push": {f"Vulns.dalfox": {"$each": result}}})
                 output = "\n".join(resultarr)
                 self.send_discord_webhook(f"New DalFox Vulnerability Found for {url} ",output,channel="main")
             self.update_task_status(subdomain,"Finished")
