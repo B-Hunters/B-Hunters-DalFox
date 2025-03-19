@@ -60,7 +60,7 @@ class dalfox(BHunters):
 
             p6.stdout.close()
             try:
-                output, _ = p7.communicate(timeout=3600)  # 60 minutes timeout
+                output, _ = p7.communicate(timeout=7200)  # 120 minutes timeout
             except subprocess.TimeoutExpired:
                 p7.kill()
                 try:
