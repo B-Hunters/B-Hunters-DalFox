@@ -24,7 +24,17 @@ class dalfox(BHunters):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-    def rundalfox(self,data):
+    def header_args(self,headers):
+        """The arguments that give dalfox the session headers.
+
+        Dalfox takes them as ``-H "name: value"`` and sends them with
+        every request it makes.
+        """
+        args=[]
+        for name,value in headers.items():
+            args += ["-H", f"{name}: {value}"]
+        return args
+    def rundalfox(self,data,headers):
         result=[]
         resultarr=[]
         try:
@@ -54,7 +64,7 @@ class dalfox(BHunters):
             if newlinks==[]:
                 return [],[]
             # Command 7: dalfox pipe --deep-domxss --multicast --blind 
-            p7 = subprocess.Popen(["dalfox", "pipe", "--deep-domxss", "--multicast","-w",os.getenv("workers_num","300"),"-o",outputfile,"--format","json","--no-color"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            p7 = subprocess.Popen(["dalfox", "pipe", "--deep-domxss", "--multicast","-w",os.getenv("workers_num","300"),"-o",outputfile,"--format","json","--no-color"]+self.header_args(headers), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             p7.stdin.write('\n'.join(newlinks).encode())
             # p7.stdin.close()
 
@@ -87,9 +97,9 @@ class dalfox(BHunters):
             raise Exception(f"Failed to process {e}")
         return result,resultarr
                     
-    def scan(self,url,source):
+    def scan(self,url,source,headers):
         data=self.backend.download_object("bhunters",f"{source}_"+self.scanid+"_"+self.encode_filename(url))
-        result,resultarr=self.rundalfox(data)
+        result,resultarr=self.rundalfox(data,headers)
         return result,resultarr
         
     def process(self, task: Task) -> None:
@@ -107,8 +117,8 @@ class dalfox(BHunters):
         subdomain = subdomain.rstrip('/')    
         self.subdomain=subdomain
         try:
-            
-            result,resultarr=self.scan(url,source)
+            headers=self.auth_headers(task)
+            result,resultarr=self.scan(url,source,headers)
             self.waitformongo()
             db=self.db
             collection=db["reports"]
