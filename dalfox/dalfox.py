@@ -64,13 +64,16 @@ class dalfox(BHunters):
             if newlinks==[]:
                 return [],[]
             # Command 7: dalfox pipe --deep-domxss --multicast --blind 
-            p7 = subprocess.Popen(["dalfox", "pipe", "--deep-domxss", "--multicast","-w",os.getenv("workers_num","300"),"-o",outputfile,"--format","json","--no-color"]+self.header_args(headers), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            # The scan gives every worker a share of its time: the number
+            # of workers dalfox starts and the time it may take are
+            # bounded, so one target cannot starve the other workers.
+            p7 = subprocess.Popen(["dalfox", "pipe", "--deep-domxss", "--multicast","-w",os.getenv("workers_num","50"),"-o",outputfile,"--format","json","--no-color"]+self.header_args(headers), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             p7.stdin.write('\n'.join(newlinks).encode())
             # p7.stdin.close()
 
             p6.stdout.close()
             try:
-                output, _ = p7.communicate(timeout=7200)  # 120 minutes timeout
+                output, _ = p7.communicate(timeout=300)  # 5 minutes timeout
             except subprocess.TimeoutExpired:
                 p7.kill()
                 try:
